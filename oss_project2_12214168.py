@@ -120,8 +120,38 @@ def borda_count(ratings, grouped_users):
 
     print()
 
+
 def copeland_rule(ratings, grouped_users):
-    pass
+    print("Copeland Rule")
+
+    # 과제 설명 pdf의 nan이 있는 표를 보면 CR알고리즘에서는 nan을 0점이라고 생각하고 계산한다.
+    ratings[np.isnan(ratings)] = 0
+
+    movies = ratings.shape[1]
+    copeland = np.zeros((movies,movies))
+
+    for group_num, users in grouped_users.items():
+        for i in range(movies):
+            i_ratings = ratings[users - 1, i]
+            for j in range(movies):
+                if i != j:
+                    j_ratings = ratings[users - 1, j]
+                    arr = np.where(i_ratings > j_ratings, 1, np.where(i_ratings < j_ratings, -1, 0))
+                    if arr.sum() > 0:
+                        copeland[j, i] = 1
+                    elif arr.sum() < 0:
+                        copeland[j, i] = -1
+                    else:
+                        copeland[j, i] = 0
+
+
+        copeland_scores = np.sum(copeland, axis=0)
+        top_movies = np.argsort(copeland_scores)[-10:][::-1] + 1
+        print("Group{}의 상위 10개 영화:".format(group_num), top_movies)
+        # print("해당 인덱스의 copeland_scores 값:", copeland_scores[np.argsort(copeland_scores)[-10:][::-1]])
+
+    print()
+
 
 # 모든 그룹에 대해 상위 10개 영화 출력
 additive_utilitarian(ratings, clustered_users)
